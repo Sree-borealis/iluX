@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>iluX — Trade Without Money</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --clay:    #C4673A;
+      --amber:   #E8943A;
+      --gold:    #F5C842;
+      --cream:   #F7EDD8;
+      --dark:    #0E0B07;
+      --ink:     #1C1409;
+      --sand:    #A8896B;
+      --teal:    #3BBFB2;
+      --glow:    rgba(245,200,66,0.18);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--dark);
+      color: var(--cream);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    #cursor {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--gold);
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: transform 0.08s ease, width 0.2s, height 0.2s, background 0.2s;
+      mix-blend-mode: screen;
+    }
+    #cursor.big { width: 48px; height: 48px; background: rgba(245,200,66,0.3); }
+
+    /* Noise texture overlay */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 48px;
+      background: linear-gradient(to bottom, rgba(14,11,7,0.95), transparent);
+      backdrop-filter: blur(2px);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo span {
+      font-family: 'Cinzel', serif;
+      font-size: 22px; font-weight: 700;
+      color: var(--cream); letter-spacing: 2px;
+    }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      color: rgba(247,237,216,0.55); font-size: 13px; font-weight: 500;
+      text-decoration: none; letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-cta {
+      background: transparent;
+      border: 1px solid var(--clay);
+      color: var(--cream); padding: 8px 20px;
+      border-radius: 4px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: 'Outfit', sans-serif;
+      letter-spacing: 0.5px; transition: all 0.2s;
+    }
+    .nav-cta:hover { background: var(--clay); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Radial glow background */
+    #hero::after {
+      content:'';
+      position: absolute;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(196,103,58,0.18) 0%, rgba(232,148,58,0.08) 40%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* Floating cuneiform characters */
+    .cunei {
+      position: absolute;
+      font-size: 28px; opacity: 0.06;
+      animation: floatUp linear infinite;
+      pointer-events: none; user-select: none;
+      color: var(--gold);
+    }
+
+    @keyframes floatUp {
+      0%   { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 0.06; }
+      90%  { opacity: 0.06; }
+      100% { transform: translateY(-20vh) rotate(20deg); opacity: 0; }
+    }
+
+    .hero-eyebrow {
+      font-size: 11px; font-weight: 600; letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--clay);
+      margin-bottom: 24px;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .hero-jar {
+      margin-bottom: 28px;
+      animation: fadeUp 0.8s 0.1s ease both;
+      filter: drop-shadow(0 0 40px rgba(196,103,58,0.5));
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(52px, 8vw, 96px);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -1px;
+      color: var(--cream);
+      margin-bottom: 8px;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--gold), var(--amber), var(--clay));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2.5vw, 21px);
+      font-weight: 300;
+      color: rgba(247,237,216,0.6);
+      max-width: 540px;
+      line-height: 1.7;
+      margin: 24px auto 48px;
+      animation: fadeUp 0.8s 0.35s ease both;
+    }
+
+    /* Waitlist form */
+    .waitlist-form {
+      display: flex; gap: 0;
+      max-width: 440px; width: 100%;
+      margin: 0 auto 20px;
+      animation: fadeUp 0.8s 0.5s ease both;
+      border-radius: 6px; overflow: hidden;
+      border: 1px solid rgba(196,103,58,0.4);
+      box-shadow: 0 0 40px rgba(196,103,58,0.15);
+    }
+    .waitlist-form input {
+      flex: 1; padding: 16px 20px;
+      background: rgba(255,255,255,0.05);
+      border: none; outline: none;
+      color: var(--cream); font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+    }
+    .waitlist-form input::placeholder { color: rgba(247,237,216,0.3); }
+    .waitlist-form button {
+      padding: 16px 28px;
+      background: linear-gradient(135deg, var(--clay), var(--amber));
+      border: none; cursor: pointer;
+      color: #fff; font-family: 'Cinzel', serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 1px; white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .waitlist-form button:hover { opacity: 0.88; }
+
+    .hero-count {
+      font-size: 12px; color: rgba(247,237,216,0.35);
+      animation: fadeUp 0.8s 0.6s ease both;
+    }
+    .hero-count strong { color: var(--gold); }
+
+    /* ── TICKER ── */
+    .ticker-wrap {
+      overflow: hidden; border-top: 1px solid rgba(196,103,58,0.2);
+      border-bottom: 1px solid rgba(196,103,58,0.2);
+      padding: 14px 0;
+      background: rgba(196,103,58,0.05);
+    }
+    .ticker {
+      display: flex; gap: 64px;
+      animation: ticker 28s linear infinite;
+      white-space: nowrap;
+    }
+    .ticker-item {
+      font-size: 12px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--sand);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .ticker-item span { color: var(--gold); }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ── SECTIONS ── */
+    section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+
+    .section-label {
+      font-size: 10px; letter-spacing: 4px; font-weight: 700;
+      text-transform: uppercase; color: var(--clay);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 700; line-height: 1.15;
+      color: var(--cream);
+      margin-bottom: 20px;
+    }
+    .section-body {
+      font-size: 16px; color: rgba(247,237,216,0.55);
+      line-height: 1.8; max-width: 560px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    #how { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    @media(max-width:768px){ #how { grid-template-columns:1fr; gap:48px; } }
+
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step {
+      display: flex; gap: 20px; padding: 24px 0;
+      border-bottom: 1px solid rgba(196,103,58,0.12);
+      opacity: 0; transform: translateX(-16px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .step.visible { opacity: 1; transform: translateX(0); }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      border: 1px solid var(--clay);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700;
+      color: var(--clay);
+    }
+    .step h3 { font-size: 15px; font-weight: 600; color: var(--cream); margin-bottom: 4px; }
+    .step p  { font-size: 13px; color: rgba(247,237,216,0.45); line-height: 1.6; }
+
+    /* ── FEATURES GRID ── */
+    #features { padding: 100px 24px; }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+      max-width: 1100px; margin: 60px auto 0;
+    }
+    @media(max-width:768px){ .features-grid { grid-template-columns: 1fr; } }
+
+    .feat {
+      padding: 36px 32px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(196,103,58,0.1);
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease, background 0.3s;
+    }
+    .feat:hover { background: rgba(196,103,58,0.07); }
+    .feat.visible { opacity: 1; transform: translateY(0); }
+    .feat-icon { font-size: 28px; margin-bottom: 16px; }
+    .feat h3 {
+      font-family: 'Cinzel', serif; font-size: 16px; font-weight: 600;
+      color: var(--cream); margin-bottom: 10px; letter-spacing: 0.3px;
+    }
+    .feat p { font-size: 13px; color: rgba(247,237,216,0.45); line-height: 1.7; }
+    .feat-tag {
+      display: inline-block; margin-top: 14px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 3px 8px;
+      border-radius: 3px;
+      background: rgba(245,200,66,0.1); color: var(--gold);
+    }
+
+    /* ── ISHTAR CREDITS SPOTLIGHT ── */
+    #ishtar {
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 24px 100px;
+    }
+    .ishtar-box {
+      background: linear-gradient(135deg, rgba(196,103,58,0.12), rgba(245,200,66,0.06));
+      border: 1px solid rgba(245,200,66,0.2);
+      border-radius: 4px;
+      padding: 64px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+    }
+    @media(max-width:768px){ .ishtar-box { grid-template-columns:1fr; padding:36px; gap:36px; } }
+
+    .commodity-wheel {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+    }
+    .c-day {
+      padding: 12px 8px; text-align: center;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 4px;
+      transition: all 0.3s;
+    }
+    .c-day.today {
+      background: rgba(245,200,66,0.12);
+      border-color: rgba(245,200,66,0.35);
+    }
+    .c-day .emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+    .c-day .dname { font-size: 9px; color: rgba(247,237,216,0.35); font-weight: 600; letter-spacing: 0.5px; }
+    .c-day .dname.today-label { color: var(--gold); }
+    .c-day .drate { font-size: 11px; color: rgba(247,237,216,0.5); margin-top: 2px; }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      border-top: 1px solid rgba(196,103,58,0.15);
+      border-bottom: 1px solid rgba(196,103,58,0.15);
+      max-width: 1100px; margin: 0 auto;
+    }
+    @media(max-width:600px){ .stats-bar { grid-template-columns: 1fr 1fr; } }
+    .stat-item {
+      padding: 40px 32px;
+      border-right: 1px solid rgba(196,103,58,0.15);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'Cinzel', serif;
+      font-size: 42px; font-weight: 700;
+      background: linear-gradient(135deg, var(--gold), var(--clay));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label { font-size: 12px; color: var(--sand); font-weight: 500; letter-spacing: 0.3px; }
+
+    /* ── INDUSTRIES ── */
+    #industries { padding: 100px 24px; max-width: 1100px; margin: 0 auto; text-align: center; }
+    .ind-grid {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 10px; margin-top: 48px;
+    }
+    .ind-pill {
+      padding: 10px 20px;
+      border: 1px solid rgba(196,103,58,0.2);
+      border-radius: 40px; font-size: 13px; font-weight: 500;
+      color: rgba(247,237,216,0.6);
+      background: rgba(255,255,255,0.02);
+      display: flex; align-items: center; gap: 7px;
+      transition: all 0.2s;
+      cursor: default;
+    }
+    .ind-pill:hover {
+      border-color: var(--clay); color: var(--cream);
+      background: rgba(196,103,58,0.08);
+    }
+
+    /* ── FOOTER CTA ── */
+    #cta {
+      text-align: center; padding: 120px 24px;
+      background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(196,103,58,0.12), transparent);
+    }
+    #cta h2 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(36px, 5vw, 64px); font-weight: 700;
+      margin-bottom: 20px; line-height: 1.1;
+    }
+    #cta p { font-size: 16px; color: rgba(247,237,216,0.5); margin-bottom: 48px; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid rgba(196,103,58,0.12);
+      padding: 40px 48px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; color: rgba(247,237,216,0.25);
+    }
+    footer a { color: rgba(247,237,216,0.25); text-decoration: none; }
+    footer a:hover { color: var(--sand); }
+
+    /* ── SUCCESS STATE ── */
+    .success-msg {
+      display: none; text-align: center;
+      padding: 16px 24px;
+      background: rgba(59,191,178,0.1);
+      border: 1px solid rgba(59,191,178,0.3);
+      border-radius: 6px;
+      font-size: 14px; color: var(--teal);
+      max-width: 440px; margin: 0 auto;
+    }
+    .success-msg.show { display: block; animation: fadeUp 0.4s ease; }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="#">
+    <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+      <defs>
+        <linearGradient id="jb" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#D4845A"/><stop offset="50%" stop-color="#B5622E"/><stop offset="100%" stop-color="#8B3E10"/>
+        </linearGradient>
+      </defs>
+      <rect x="13" y="3" width="10" height="3" rx="1.5" fill="url(#jb)"/>
+      <rect x="12" y="6" width="12" height="2.5" rx="1" fill="#8B3E10"/>
+      <path d="M12,8.5 Q6,11 5.5,18 Q5,25 9,29 Q13,33 18,33 Q23,33 27,29 Q31,25 30.5,18 Q30,11 24,8.5 Z" fill="url(#jb)"/>
+      <path d="M8,17 Q18,15 28,17" stroke="#6B2A00" stroke-width="0.8" fill="none" opacity="0.7"/>
+      <path d="M7.5,20 Q18,18 28.5,20" stroke="#6B2A00" stroke-width="0.8" fill="none" opacity="0.7"/>
+      <polygon points="12,17 14,17 13,19" fill="#6B2A00" opacity="0.5"/>
+      <polygon points="17,17 19,17 18,19" fill="#6B2A00" opacity="0.5"/>
+      <polygon points="22,17 24,17 23,19" fill="#6B2A00" opacity="0.5"/>
+      <ellipse cx="18" cy="32.5" rx="5" ry="1.5" fill="#8B3E10" opacity="0.8"/>
+    </svg>
+    <span>iluX</span>
+  </a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#ishtar">Ishtar Credits</a>
+    <button class="nav-cta" onclick="document.getElementById('waitlist-email').focus()">Join Beta →</button>
+    <a href="./app/index.html" style="padding:8px 20px;background:linear-gradient(135deg,#C4673A,#E8943A);border-radius:4px;color:#fff;font-size:13px;font-weight:600;text-decoration:none;letter-spacing:0.5px;font-family:Outfit,sans-serif;">Launch App →</a>
+  </div>
+</nav>
+
+<!-- Floating cuneiform symbols -->
+<div class="cunei" style="left:8%;animation-duration:22s;animation-delay:0s;font-size:36px;">𒀭</div>
+<div class="cunei" style="left:22%;animation-duration:30s;animation-delay:5s;">𒁹</div>
+<div class="cunei" style="left:55%;animation-duration:25s;animation-delay:2s;font-size:24px;">𒀭</div>
+<div class="cunei" style="left:72%;animation-duration:35s;animation-delay:8s;font-size:40px;">𒂗</div>
+<div class="cunei" style="left:88%;animation-duration:20s;animation-delay:3s;">𒀭</div>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <p class="hero-eyebrow">Introducing the future of fair exchange</p>
+
+  <!-- Big jar logo -->
+  <div class="hero-jar">
+    <svg width="90" height="90" viewBox="0 0 36 36" fill="none">
+      <defs>
+        <linearGradient id="hJar" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#E8943A"/><stop offset="50%" stop-color="#C4673A"/><stop offset="100%" stop-color="#8B3E10"/>
+        </linearGradient>
+        <linearGradient id="hShine" x1="0%" y1="0%" x2="60%" y2="100%">
+          <stop offset="0%" stop-color="#F0A878" stop-opacity="0.7"/><stop offset="100%" stop-color="#B5622E" stop-opacity="0"/>
+        </linearGradient>
+        <filter id="hShadow">
+          <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#C4673A" flood-opacity="0.6"/>
+        </filter>
+      </defs>
+      <g filter="url(#hShadow)">
+        <rect x="13" y="3" width="10" height="3" rx="1.5" fill="url(#hJar)"/>
+        <rect x="12" y="6" width="12" height="2.5" rx="1" fill="#8B3E10"/>
+        <path d="M12,8.5 Q6,11 5.5,18 Q5,25 9,29 Q13,33 18,33 Q23,33 27,29 Q31,25 30.5,18 Q30,11 24,8.5 Z" fill="url(#hJar)"/>
+        <path d="M13,10 Q9,13 8.5,19 Q10,14 14,11 Z" fill="url(#hShine)"/>
+        <path d="M8,17 Q18,15 28,17" stroke="#6B2A00" stroke-width="1" fill="none" opacity="0.8"/>
+        <path d="M7.5,20 Q18,18 28.5,20" stroke="#6B2A00" stroke-width="1" fill="none" opacity="0.8"/>
+        <polygon points="12,17 14,17 13,19" fill="#6B2A00" opacity="0.6"/>
+        <polygon points="17,17 19,17 18,19" fill="#6B2A00" opacity="0.6"/>
+        <polygon points="22,17 24,17 23,19" fill="#6B2A00" opacity="0.6"/>
+        <ellipse cx="18" cy="32.5" rx="5" ry="1.5" fill="#8B3E10"/>
+      </g>
+    </svg>
+  </div>
+
+  <h1>Trade what you have.<br/><em>Get what you need.</em></h1>
+  <p class="hero-sub">AI-powered barter across industries. From M8 bolts to massage sessions — exchange goods and services without money, moderated by AI, valued in Ishtar Credits.</p>
+
+  <div class="waitlist-form" id="waitlist-top">
+    <input type="email" id="waitlist-email" placeholder="your@email.com"/>
+    <button onclick="joinWaitlist('top')">JOIN BETA</button>
+  </div>
+  <div class="success-msg" id="success-top">
+    ✓ You're on the list! We'll reach out before launch. Welcome to the exchange.
+  </div>
+  <p class="hero-count">Be among the <strong>first</strong> traders · Beta launching soon</p>
+</section>
+
+<!-- ── TICKER ── -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">🔩 M8 Bolts <span>↔</span> Graphic Design</span>
+    <span class="ticker-item">📚 Engineering Textbooks <span>↔</span> Lab Equipment</span>
+    <span class="ticker-item">👗 Winter Jackets <span>↔</span> Shelf Space</span>
+    <span class="ticker-item">🧘 Personal Training <span>↔</span> Meal Prep</span>
+    <span class="ticker-item">🚗 Tote Bins <span>↔</span> Paint Work</span>
+    <span class="ticker-item">📷 Photography <span>↔</span> Yoga Sessions</span>
+    <span class="ticker-item">🏗 Custom Woodwork <span>↔</span> Electrical Work</span>
+    <!-- repeat for seamless loop -->
+    <span class="ticker-item">🔩 M8 Bolts <span>↔</span> Graphic Design</span>
+    <span class="ticker-item">📚 Engineering Textbooks <span>↔</span> Lab Equipment</span>
+    <span class="ticker-item">👗 Winter Jackets <span>↔</span> Shelf Space</span>
+    <span class="ticker-item">🧘 Personal Training <span>↔</span> Meal Prep</span>
+    <span class="ticker-item">🚗 Tote Bins <span>↔</span> Paint Work</span>
+    <span class="ticker-item">📷 Photography <span>↔</span> Yoga Sessions</span>
+    <span class="ticker-item">🏗 Custom Woodwork <span>↔</span> Electrical Work</span>
+  </div>
+</div>
+
+<!-- ── STATS ── -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">0</div><div class="stat-label">Trades completed</div></div>
+  <div class="stat-item"><div class="stat-num">0</div><div class="stat-label">Countries active</div></div>
+  <div class="stat-item"><div class="stat-num">—</div><div class="stat-label">Avg AI match score</div></div>
+  <div class="stat-item"><div class="stat-num">—</div><div class="stat-label">Trade success rate</div></div>
+</div>
+
+<div style="text-align:center;padding:12px 24px;background:rgba(196,103,58,0.06);border-bottom:1px solid rgba(196,103,58,0.1);">
+  <span style="font-size:11px;color:rgba(247,237,216,0.35);letter-spacing:1px;">⚡ BETA — All stats update in real time once trading begins. We show you what's real, not what looks good.</span>
+</div>
+<!-- ── HOW IT WORKS ── -->
+<section>
+  <div id="how">
+    <div>
+      <p class="section-label">How it works</p>
+      <h2 class="section-title">Four steps to your first trade</h2>
+      <p class="section-body">No money changes hands. No bank account needed. Just tell us what you have and what you want — our AI finds your perfect match.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">I</div>
+        <div><h3>Post what you have</h3><p>Describe your goods or services in plain language. AI screens every listing before it goes live.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">II</div>
+        <div><h3>Say what you want</h3><p>Tell us what you're looking for. Be as specific or broad as you like — bolts, branding, or a back massage.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">III</div>
+        <div><h3>AI finds your match</h3><p>Our engine scores every listing and surfaces your top 3 matches with a plain-English explanation of why they fit.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">IV</div>
+        <div><h3>Trade & earn Ishtar Credits</h3><p>Complete the trade, choose your shipping method, and earn credits — redeemable for boosts, badges, and discounts.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<div id="features">
+  <div style="max-width:1100px;margin:0 auto;padding:0 0 0 24px;">
+    <p class="section-label">Platform features</p>
+    <h2 class="section-title">Everything the best iluX<br/>platform needs</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">🤖</div>
+      <h3>AI Matching Engine</h3>
+      <p>Semantic matching scores every listing pair 0–100 and explains exactly why two traders are a good fit.</p>
+      <span class="feat-tag">Powered by Claude</span>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🛡</div>
+      <h3>AI Moderation</h3>
+      <p>Every listing is screened for illegal goods, counterfeits, weapons, and fraud before it ever appears publicly.</p>
+      <span class="feat-tag">Auto-blocked</span>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">𒀭</div>
+      <h3>Ishtar Credits</h3>
+      <p>A commodity-pegged credit system — daily value tied to real physical goods like bolts, batteries, and potatoes.</p>
+      <span class="feat-tag">Novel IP</span>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🚩</div>
+      <h3>Community Flagging</h3>
+      <p>Spot something illegal? Flag it and earn 50 Ishtar Credits instantly. Community moderation at scale.</p>
+      <span class="feat-tag">Incentivized</span>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📦</div>
+      <h3>Integrated Shipping</h3>
+      <p>Choose FedEx tracked delivery, 3PL warehouse handoff, or self pick-up — each with full risk disclosures.</p>
+      <span class="feat-tag">Risk-rated</span>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📊</div>
+      <h3>Live Analytics</h3>
+      <p>Track top traded items, active cities by country, industry volumes, and commodity peg history in real time.</p>
+      <span class="feat-tag">Market intelligence</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── ISHTAR CREDITS ── -->
+<div id="ishtar">
+  <div class="ishtar-box">
+    <div>
+      <p class="section-label">The Ishtar Credit System</p>
+      <h2 class="section-title" style="font-size:clamp(28px,3.5vw,42px)">Currency pegged to<br/><em style="font-style:normal;color:var(--gold)">the real world.</em></h2>
+      <p class="section-body" style="margin-top:16px;">
+        Every day, Ishtar Credits reset their value against a rotating real-world commodity — bolts on Monday, USB cables on Tuesday, batteries on Wednesday. Your credits are never abstract: they always mean something tangible.<br/><br/>
+        This is the world's first commodity-rotating digital credit system, and it's what makes iluX genuinely different from every other exchange platform.
+      </p>
+      <div style="margin-top:28px;display:flex;gap:24px;">
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:28px;font-weight:700;color:var(--gold);">100</div>
+          <div style="font-size:11px;color:var(--sand);">credits today</div>
+        </div>
+        <div style="width:1px;background:rgba(196,103,58,0.2);"></div>
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--amber);line-height:1.3;" id="todayRate">—</div>
+          <div style="font-size:11px;color:var(--sand);" id="todayCom">loading today's commodity</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--sand);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;">This week's commodity rotation</div>
+      <div class="commodity-wheel" id="commodityWheel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── INDUSTRIES ── -->
+<div id="industries">
+  <p class="section-label">Supported sectors</p>
+  <h2 class="section-title">Trade across every industry</h2>
+  <p class="section-body" style="margin:0 auto 0;text-align:center;">From factory floor to farmers market — iluX works for anyone with surplus value to exchange.</p>
+  <div class="ind-grid">
+    <div class="ind-pill">🏭 Industrial</div>
+    <div class="ind-pill">🚗 Automotive</div>
+    <div class="ind-pill">💡 Electronics</div>
+    <div class="ind-pill">👗 Apparel</div>
+    <div class="ind-pill">📚 Books</div>
+    <div class="ind-pill">🛒 Groceries</div>
+    <div class="ind-pill">🧘 Wellness</div>
+    <div class="ind-pill">🛠 Services</div>
+    <div class="ind-pill">🏗 Logistics</div>
+    <div class="ind-pill">🔩 Manufacturing Parts</div>
+    <div class="ind-pill">🌾 Agriculture</div>
+    <div class="ind-pill">🖥 Software</div>
+  </div>
+</div>
+
+<!-- ── FINAL CTA ── -->
+<section id="cta">
+  <p class="section-label">Early access</p>
+  <h2>Ready to trade<br/><em style="font-style:normal;background:linear-gradient(135deg,var(--gold),var(--clay));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">without money?</em></h2>
+  <p>Join the beta. First 500 traders get 500 Ishtar Credits free at launch.</p>
+  <div class="waitlist-form" style="max-width:440px;margin:0 auto 16px;" id="waitlist-bottom">
+    <input type="email" id="waitlist-email-2" placeholder="your@email.com"/>
+    <button onclick="joinWaitlist('bottom')">CLAIM MY SPOT</button>
+  </div>
+  <div class="success-msg" id="success-bottom">
+    ✓ You're in! 500 Ishtar Credits reserved for you at launch. Ancient commerce, modern AI.
+  </div>
+  <p class="hero-count" style="margin-top:14px;">First <strong>500</strong> beta traders get 500 Ishtar Credits free at launch</p>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <svg width="18" height="18" viewBox="0 0 36 36" fill="none">
+      <path d="M12,8.5 Q6,11 5.5,18 Q5,25 9,29 Q13,33 18,33 Q23,33 27,29 Q31,25 30.5,18 Q30,11 24,8.5 Z" fill="#B5622E" opacity="0.8"/>
+    </svg>
+    <span>© 2025 iluX · Mesopotamian Ishtar Credits™ · Patent Pending</span>
+  </div>
+  <div style="display:flex;gap:24px;">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<script>
+  // ── Custom cursor ──
+  const cur = document.getElementById('cursor');
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px';
+    cur.style.top  = e.clientY + 'px';
+  });
+  document.querySelectorAll('button,a,.ind-pill,.feat').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('big'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('big'));
+  });
+
+  // ── Scroll reveal ──
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), e.target.dataset.delay || 0);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.step').forEach((el, i) => {
+    el.dataset.delay = i * 100;
+    observer.observe(el);
+  });
+  document.querySelectorAll('.feat').forEach((el, i) => {
+    el.dataset.delay = i * 80;
+    observer.observe(el);
+  });
+
+  // ── Commodity wheel ──
+  const commodities = [
+    { day:"Mon", emoji:"🔩", name:"Bolts",      rate:"per box"  },
+    { day:"Tue", emoji:"🔌", name:"USB Cable",  rate:"per unit" },
+    { day:"Wed", emoji:"🔋", name:"Batteries",  rate:"per pack" },
+    { day:"Thu", emoji:"📄", name:"Paper",      rate:"per ream" },
+    { day:"Fri", emoji:"🤐", name:"Zip Ties",   rate:"per bag"  },
+    { day:"Sat", emoji:"💛", name:"Rubber Bands",rate:"per lb"  },
+    { day:"Sun", emoji:"🥔", name:"Potatoes",   rate:"per kg"   },
+  ];
+  const todayIdx = new Date().getDay(); // 0=Sun ... 6=Sat
+  const reordered = [
+    commodities[1], commodities[2], commodities[3], commodities[4],
+    commodities[5], commodities[6], commodities[0],
+  ];
+  const todayItem = commodities[todayIdx];
+
+  const wheel = document.getElementById('commodityWheel');
+  reordered.forEach((c, i) => {
+    const isToday = c.day === todayItem.day;
+    wheel.innerHTML += `
+      <div class="c-day ${isToday ? 'today' : ''}">
+        <span class="emoji">${c.emoji}</span>
+        <div class="dname ${isToday ? 'today-label' : ''}">${c.day}${isToday ? ' ★' : ''}</div>
+        <div class="drate">${c.rate}</div>
+      </div>`;
+  });
+
+  document.getElementById('todayRate').textContent = todayItem.rate;
+  document.getElementById('todayCom').textContent = `${todayItem.emoji} ${todayItem.name} today`;
+
+  // ── Waitlist ──
+  function joinWaitlist(loc) {
+    const input = document.getElementById(loc === 'top' ? 'waitlist-email' : 'waitlist-email-2');
+    const success = document.getElementById('success-' + loc);
+    const form = document.getElementById('waitlist-' + loc);
+    if (!input.value.includes('@')) {
+      input.style.borderBottom = '2px solid #C4673A';
+      input.focus(); return;
+    }
+    form.style.display = 'none';
+    success.classList.add('show');
+    // In production: POST to your backend / Mailchimp / Resend here
+    console.log('Waitlist signup:', input.value);
+  }
+
+  // Allow Enter key
+  document.querySelectorAll('.waitlist-form input').forEach(inp => {
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const loc = inp.id.includes('2') ? 'bottom' : 'top';
+        joinWaitlist(loc);
+      }
+    });
+  });
+</script>
+</body>
+</html>
