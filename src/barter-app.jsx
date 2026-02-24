@@ -27,11 +27,11 @@ const INDUSTRIES = [
   { id: "services",    label: "Services",   emoji: "🛠" },
 ];
 
-// Shipping: three simple options — barter arranges, self-arrange, or pickup
+// Shipping: three simple options — iluX arranges, self-arrange, or pickup
 const SHIP_METHODS = [
   {
-    id: "barter_logistics",
-    label: "barter Logistics",
+    id: "ilux_logistics",
+    label: "iluX Logistics",
     emoji: "𒀭",
     risk: "low",
     badge: "RECOMMENDED",
@@ -39,7 +39,7 @@ const SHIP_METHODS = [
     creditCost: 150,
     desc: "We handle everything — pickup, carrier selection, tracking & delivery.",
     bullets: [
-      "barter arranges the best carrier for your trade",
+      "iluX arranges the best carrier for your trade",
       "Full tracking & insurance included",
       "Paid in Ishtar Credits — no cash needed",
       "Support if anything goes wrong",
@@ -120,7 +120,7 @@ const ANALYTICS = {
     { day:"Sun", commodity:"🥔 Potatoes" },
   ],
   shippingBreakdown: [
-    { method:"barter Logistics", pct:0, color:"#4ECDC4" },
+    { method:"iluX Logistics", pct:0, color:"#4ECDC4" },
     { method:"Self-Arrange",   pct:0, color:"#FFE66D" },
     { method:"Pick-up",       pct:0, color:"#FF6B6B" },
   ],
@@ -130,7 +130,7 @@ const ANALYTICS = {
 };
 
 async function aiModerate(offering, wanting, industry) {
-  const prompt = `You are a strict content moderator for a barter marketplace.
+  const prompt = `You are a strict content moderator for a iluX marketplace.
 Industry: ${industry}
 Offering: "${offering}"
 Wanting: "${wanting}"
@@ -151,7 +151,7 @@ Respond ONLY with valid JSON (no markdown):
 
 async function aiMatch(offering, wanting, listings) {
   const ctx = listings.filter(l=>!l.flagged).map(l=>`ID:${l.id}|${l.name}|${l.industry}|offers:"${l.offering}"|wants:"${l.wanting}"`).join("\n");
-  const prompt = `Barter matching engine.
+  const prompt = `iluX matching engine.
 User offers: "${offering}"
 User wants: "${wanting}"
 Listings:
@@ -309,10 +309,10 @@ export default function BarterApp() {
                 <ellipse cx="18" cy="32.5" rx="5" ry="1.5" fill="#8B3E10" opacity="0.8"/>
               </g>
             </svg>
-            <span style={{fontFamily:"Syne,sans-serif",fontWeight:"800",fontSize:"20px",letterSpacing:"-0.5px"}}>barter</span>
+            <span style={{fontFamily:"Syne,sans-serif",fontWeight:"800",fontSize:"20px",letterSpacing:"-0.5px"}}>iluX</span>
             <span style={{marginLeft:"auto",fontSize:"9px",padding:"2px 7px",background:"rgba(78,205,196,0.15)",color:"#4ECDC4",borderRadius:"20px",fontWeight:"700",letterSpacing:"1px"}}>AI MODERATED</span>
           </div>
-          <p style={{fontSize:"12px",color:"rgba(255,255,255,0.32)",fontWeight:"300"}}>Barter goods & services across industries. No money needed.</p>
+          <p style={{fontSize:"12px",color:"rgba(255,255,255,0.32)",fontWeight:"300"}}>iluX goods & services across industries. No money needed.</p>
         </div>
 
         {/* Tabs */}
@@ -508,7 +508,7 @@ export default function BarterApp() {
               <div style={card()}>
                 <div style={{fontFamily:"Syne,sans-serif",fontWeight:"800",fontSize:"14px",marginBottom:"10px"}}>𒀭 What are Ishtar Credits?</div>
                 <div style={{fontSize:"12px",color:"rgba(255,255,255,0.5)",lineHeight:"1.8"}}>
-                  Mesopotamian Ishtar Online Credits are barter's community currency. Their value is pegged daily to a real-world commodity — today that's <strong style={{color:"#FFD700"}}>{COMMODITY_OF_THE_DAY.emoji} {COMMODITY_OF_THE_DAY.name}</strong>.
+                  Mesopotamian Ishtar Online Credits are iluX's community currency. Their value is pegged daily to a real-world commodity — today that's <strong style={{color:"#FFD700"}}>{COMMODITY_OF_THE_DAY.emoji} {COMMODITY_OF_THE_DAY.name}</strong>.
                   <br/><strong style={{color:"rgba(255,255,255,0.75)"}}>100 credits</strong> ≈ <strong style={{color:"#FFD700"}}>100 {COMMODITY_OF_THE_DAY.unit}</strong> of {COMMODITY_OF_THE_DAY.name} today. Peg resets daily at midnight.
                 </div>
               </div>
